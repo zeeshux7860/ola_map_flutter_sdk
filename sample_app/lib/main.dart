@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:icons_plus/icons_plus.dart';
-import 'package:sample_app/map.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,8 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: IndexedStack(
         index: selectedIndex,
-        children: const [
-          HomePage(),
+        children:  [
+          HomePageView(),
           // ChatPage(),
           // GroupPage(),
           // ContactPage(),
@@ -59,25 +57,10 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: onItemTapped,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Iconsax.location_outline),
+            icon: Icon(Icons.local_activity),
             label: "Home",
           ),
-          BottomNavigationBarItem(
-            icon: Icon(MingCute.chat_1_line),
-            label: "Chat",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(MingCute.search_3_line),
-            label: "Search",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(MingCute.group_line),
-            label: "Contact",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(MingCute.user_1_line),
-            label: "Profile",
-          ),
+
         ],
       ),
     );

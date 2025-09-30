@@ -113,6 +113,15 @@ class MethodChannelOlaMapFlutter extends OlaMapFlutterPlatform {
   }
 
   @override
+  Future<void> moveCameraToLocation({required double latitude, required double longitude}) async {
+    try {
+      await methodChannel.invokeMethod('moveCameraToLocation', {'latitude': latitude, 'longitude': longitude});
+    } on PlatformException catch (e) {
+      throw Exception("Failed to move camera to location: '${e.message}'.");
+    }
+  }
+
+  @override
   Future<void> addCustomMarker({
     required Widget child,
     required double latitude,
@@ -149,6 +158,15 @@ class MethodChannelOlaMapFlutter extends OlaMapFlutterPlatform {
       await methodChannel.invokeMethod('removeMarker', {'markerId': markerId});
     } on PlatformException catch (e) {
       throw Exception("Failed to remove marker: '${e.message}'.");
+    }
+  }
+
+  @override
+  Future<void> resetRotation() async {
+    try {
+      await methodChannel.invokeMethod('resetRotation');
+    } on PlatformException catch (e) {
+      throw Exception("Failed to reset rotation: '${e.message}'.");
     }
   }
 

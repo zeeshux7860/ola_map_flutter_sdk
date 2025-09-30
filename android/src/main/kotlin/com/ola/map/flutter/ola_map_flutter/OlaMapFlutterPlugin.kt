@@ -42,7 +42,7 @@ class OlaMapFlutterPlugin : FlutterPlugin, MethodCallHandler {
       "getPlatformVersion" -> {
         result.success("Android ${android.os.Build.VERSION.RELEASE}")
       }
-     
+
       else -> result.notImplemented()
     }
   }
@@ -75,80 +75,92 @@ class OlaMapViewController(
     Log.d("OlaMapViewController", "OlaMapView initialized with viewId: $viewId")
 
     val apiKey = creationParams?.get("apiKey") as? String
+    val showCompass = creationParams?.get("showCompass") as? Boolean ?: false
+    val showPOI = creationParams?.get("showPOI") as? Boolean ?: false
+    
     if (apiKey.isNullOrEmpty()) {
       // Return error if apiKey is missing or invalid
       methodChannel.invokeMethod("onError", "API key is missing or invalid")
 
     }else {
-      initializeMap(apiKey);
+      initializeMap(apiKey, showCompass, showPOI);
     }
 
     methodChannel.setMethodCallHandler { call, result ->
       Log.d("Erro", call.method);
       when (call.method) {
-          "getCurrentLocation" -> {
-            getCurrentLocation(result)
-          }
-          "showCurrentLocation" -> {
-            showCurrentLocation(result)
-          }
-          "hideCurrentLocation" -> {
-            hideCurrentLocation(result)
-          }
-          "zoomIn" -> {
-            zoomIn(result)
-          }
-          "zoomOut" -> {
-            zoomOut(result)
-          }
-          "zoomTo" -> {
-            zoom(call,result)
-          }
-          "moveToCurrentLocation" -> {
-            moveToSpecifiedLocation(call,result)
-          }
-          "addMarker" -> {
-            addMarker(call,result)
-          }
+        "getCurrentLocation" -> {
+          getCurrentLocation(result)
+        }
+        "showCurrentLocation" -> {
+          showCurrentLocation(result)
+        }
+        "hideCurrentLocation" -> {
+          hideCurrentLocation(result)
+        }
+        "zoomIn" -> {
+          zoomIn(result)
+        }
+        "zoomOut" -> {
+          zoomOut(result)
+        }
+        "zoomTo" -> {
+          zoom(call,result)
+        }
+        "moveToCurrentLocation" -> {
+          moveToSpecifiedLocation(call,result)
+        }
+        "addMarker" -> {
+          addMarker(call,result)
+        }
         "removeMarker" -> {
           removeMarker(call, result)
         }
-          else -> {
-            Log.e("OlaMapViewController", "Unknown method called: ${call.method}")
-            result.notImplemented()
-          }
+        "resetRotation" -> {
+          resetRotation(result)
+        }
+        else -> {
+          Log.e("OlaMapViewController", "Unknown method called: ${call.method}")
+          result.notImplemented()
+        }
       }
     }
 
 
   }
-  private fun initializeMap(apiKey: String) {
+  private fun initializeMap(apiKey: String, showCompass: Boolean, showPOI: Boolean) {
     try {
 
-        Log.d("OlaMapViewController", "API Key is valid, initializing map...")
-        val mapControlSettings = MapControlSettings.Builder()
-          .setRotateGesturesEnabled(true)
-          .setScrollGesturesEnabled(true)
-          .setZoomGesturesEnabled(true)
-          .setCompassEnabled(true)
-          .setTiltGesturesEnabled(true)
-          .setDoubleTapGesturesEnabled(true)
-          .build()
-        mapView.getMap(apiKey, object : OlaMapCallback {
-          override fun onMapReady(map: OlaMap) {
-            olaMap = map
-            methodChannel.invokeMethod("onMapReady", null)
-            Log.d("OlaMapFlutterPlugin", "Map initialized successfully")
+      Log.d("OlaMapViewController", "API Key is valid, initializing map...")
+      val mapControlSettings = MapControlSettings.Builder()
+        .setRotateGesturesEnabled(true)
+        .setScrollGesturesEnabled(true)
+        .setZoomGesturesEnabled(true)
+        .setCompassEnabled(showCompass)
+        .setTiltGesturesEnabled(true)
+        .setDoubleTapGesturesEnabled(true)
+        .build()
+      mapView.getMap(apiKey, object : OlaMapCallback {
+        override fun onMapReady(map: OlaMap) {
+          olaMap = map
+          // Disable POI if requested
+          if (!showPOI) {
+            // Note: The actual method to disable POI depends on the Ola Maps SDK API
+            // This is a placeholder - you may need to adjust based on actual SDK methods
+            // olaMap?.setPoiEnabled(false) or similar
           }
+          methodChannel.invokeMethod("onMapReady", null)
+          Log.d("OlaMapFlutterPlugin", "Map initialized successfully")
+        }
 
-          override fun onMapError(error: String) {
-            methodChannel.invokeMethod("onError", error)
+        override fun onMapError(error: String) {
+          methodChannel.invokeMethod("onError", error)
 //                result.error("MAP_ERROR", error, null)
-            Log.e("OlaMapFlutterPlugin", "Map initialization error: $error")
-          }
-        },
-          mapControlSettings
-          )
+          Log.e("OlaMapFlutterPlugin", "Map initialization error: $error")
+        }
+      },
+        mapControlSettings
+      )
 
     } catch (e: Exception) {
       Log.e("OlaMapViewController", "Exception during map initialization: ${e.message}", e)
@@ -164,23 +176,23 @@ class OlaMapViewController(
     olaMap?.showCurrentLocation()
     val activityContext = context as? Activity
     activityContext?.runOnUiThread {
-        if (olaMap == null) {
-          result.error("LOCATION_ERROR", "OlaMap instance is not initialized", null)
-          return@runOnUiThread
-        }
-
-        val currentLocation: OlaLatLng? = olaMap?.getCurrentLocation()
-        if (currentLocation != null) {
-          Log.d("OlaMapViewController", "Current location: $currentLocation")
-          val locationMap = mapOf(
-            "latitude" to currentLocation.latitude,
-            "longitude" to currentLocation.longitude
-          )
-          result.success(locationMap)
-        } else {
-          result.error("LOCATION_ERROR", "Current location is not available", null)
-        }
+      if (olaMap == null) {
+        result.error("LOCATION_ERROR", "OlaMap instance is not initialized", null)
+        return@runOnUiThread
       }
+
+      val currentLocation: OlaLatLng? = olaMap?.getCurrentLocation()
+      if (currentLocation != null) {
+        Log.d("OlaMapViewController", "Current location: $currentLocation")
+        val locationMap = mapOf(
+          "latitude" to currentLocation.latitude,
+          "longitude" to currentLocation.longitude
+        )
+        result.success(locationMap)
+      } else {
+        result.error("LOCATION_ERROR", "Current location is not available", null)
+      }
+    }
 
   }
 
@@ -191,8 +203,8 @@ class OlaMapViewController(
 //        result.error("LOCATION_ERROR", "OlaMap instance is not initialized", null)
 //        return@runOnUiThread
 //      }
-      olaMap?.showCurrentLocation()
-      result.success("Current location shown")
+    olaMap?.showCurrentLocation()
+    result.success("Current location shown")
 //    }
   }
 
@@ -327,6 +339,25 @@ class OlaMapViewController(
     val marker1 = olaMap?.addMarker(markerOptionsBuilder)
     marker1?.removeMarker();
 
+  }
+
+  private fun resetRotation(result: Result) {
+    val currentCameraPosition = olaMap?.getCurrentOlaCameraPosition()
+    
+    if (currentCameraPosition != null) {
+      val targetLocation = currentCameraPosition.target
+      val currentZoomLevel = currentCameraPosition.zoomLevel
+      
+      if (targetLocation != null) {
+        // Reset bearing to 0 (north)
+        olaMap?.moveCameraToLatLong(targetLocation, currentZoomLevel)
+        result.success(null)
+      } else {
+        result.error("ROTATION_ERROR", "Failed to get target location", null)
+      }
+    } else {
+      result.error("ROTATION_ERROR", "Failed to get current camera position", null)
+    }
   }
 
   override fun getView(): View {

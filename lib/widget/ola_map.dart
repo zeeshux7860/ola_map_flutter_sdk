@@ -9,6 +9,8 @@ class OlaMap extends StatefulWidget {
   final bool? showCurrentLocation;
   final bool? showZoomControls;
   final bool? showMyLocationButton;
+  final bool? showCompass;
+  final bool? showPOI;
   final void Function(OlaMapController) onPlatformViewCreated;
 
   const OlaMap({
@@ -18,6 +20,8 @@ class OlaMap extends StatefulWidget {
     this.showCurrentLocation,
     this.showZoomControls,
     this.showMyLocationButton,
+    this.showCompass,
+    this.showPOI,
   }) : super(key: key);
 
   @override
@@ -45,7 +49,11 @@ class _OlaMapState extends State<OlaMap> {
       children: [
         AndroidView(
           viewType: 'OlaMapView',
-          creationParams: {'apiKey': widget.apiKey},
+          creationParams: {
+            'apiKey': widget.apiKey,
+            'showPOI':  false,
+            'showCompass': widget.showCompass ?? false,
+          },
           creationParamsCodec: const StandardMessageCodec(),
           onPlatformViewCreated: (int id) {
             final OlaMapController controller = OlaMapController(id);
@@ -54,50 +62,44 @@ class _OlaMapState extends State<OlaMap> {
             _handleMapController(); // Handle current location
           },
         ),
-        // Branding
-        Positioned(
-          bottom: 0,
-          left: 0,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: RichText(
-              text: const TextSpan(
-                text: 'OLA',
-                children: [
-                  TextSpan(
-                    text: 'MAP',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+        // Custom Compass in bottom-left
+        widget.showCompass ?? true
+            ? Positioned(
+                bottom: 100,
+                left: 20,
+                child: GestureDetector(
+                  onTap: () async {
+                    try {
+                      final OlaMapController controller = await _mapControllerCompleter.future;
+                      // Reset rotation to north
+                      controller.resetRotation();
+                    } catch (e) {
+                      print('Error resetting rotation: $e');
+                    }
+                  },
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
                       color: Colors.white,
-                      letterSpacing: 2.0,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(2.0, 2.0),
-                          blurRadius: 3.0,
-                          color: Colors.grey,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                  ),
-                ],
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  letterSpacing: 2.0,
-                  shadows: [
-                    Shadow(
-                      offset: Offset(2.0, 2.0),
-                      blurRadius: 3.0,
-                      color: Colors.grey,
+                    child: const Icon(
+                      Icons.navigation,
+                      color: Colors.black87,
+                      size: 24,
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ),
-        ),
+              )
+            : Container(),
         // Zoom controls and location button
         widget.showZoomControls ?? false
             ? Positioned(

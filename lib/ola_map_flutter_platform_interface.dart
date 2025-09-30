@@ -76,6 +76,11 @@ abstract class OlaMapFlutterPlatform extends PlatformInterface {
         'moveToCurrentLocation() has not been implemented.');
   }
 
+  Future<void> moveCameraToLocation({required double latitude, required double longitude}) {
+    throw UnimplementedError(
+        'moveCameraToLocation() has not been implemented.');
+  }
+
   Future<void> addCustomMarker({
     required Widget child,
     required double latitude,
@@ -90,6 +95,10 @@ abstract class OlaMapFlutterPlatform extends PlatformInterface {
 
   Future<void> removeMarker({required String markerId}) {
     throw UnimplementedError('removeCustomMarker() has not been implemented.');
+  }
+
+  Future<void> resetRotation() {
+    throw UnimplementedError('resetRotation() has not been implemented.');
   }
 
   Future<void> handleMethod(MethodCall call) {

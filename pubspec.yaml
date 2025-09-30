@@ -11,12 +11,12 @@ dependencies:
   flutter:
     sdk: flutter
   # location: ^6.0.2
-  geolocator: ^11.1.0
+  geolocator: ^14.0.2
   get: ^4.6.6
-  permission_handler: ^11.3.1
-  plugin_platform_interface: ^2.0.2
-  screenshot: 2.5.0
-  widgets_to_image: ^1.0.0
+  permission_handler: ^12.0.1
+  plugin_platform_interface: ^2.1.8
+  screenshot: 3.0.0
+  widgets_to_image: ^2.0.1
 
 dev_dependencies:
   flutter_test:
